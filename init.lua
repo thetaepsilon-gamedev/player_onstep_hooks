@@ -50,21 +50,7 @@ end
 
 
 
--- what we need here:
--- a generalisation of the above that only performs some shared per-player data setup inside the for loop.
--- additionally, takes a function that skips execution if some condition is not met on a per-player basis.
--- (maybe make the two the same...?)
--- perhaps only pass data via read-only proxy to curb attempts at modification...
--- feels like we need to start breaking out the IPerPlayerGlobalStepRegistrar interface perhaps...
---[[
-IPerPlayerGlobalStepRegistrar needs IGlobalStepRegistrar
 
--- this one remembers old state for you.
-IStatefulPerPlayerGlobalStepRegistrar needs
-	IPerPlayerGlobalStepRegistrar, IPlayerLeaveRegistrar
-	-- latter is to clear out old state when players leave.
-	-- when they (re-)join, their state is reinitialised.
-]]
 
 
 

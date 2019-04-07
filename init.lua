@@ -20,13 +20,18 @@ local chain = function(current, link)
 end
 local endofchain = function(...) end
 
-local mk_chain_builder = function()
+local noop = function() end
+local mk_chain_builder = function(pre_insert_callback)
+	pre_insert_callback = pre_insert_callback and assertf(pre_insert_callback) or noop
+
 	-- current linked list head - starts out as empty base recursion case
 	local head = endofchain
 	local any_ = false
 
 	local insert = function(f)
 		assert(type(f) == "function", "callbacks must be a function.")
+		pre_insert_callback(f)
+
 		local link = head
 		local newlink = chain(f, link)
 		head = newlink

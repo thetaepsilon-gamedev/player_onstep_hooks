@@ -350,9 +350,15 @@ local make_per_player_on_change_callback_registrar =
 
 
 
--- wee daften test of this too.
+-- Now we get to the interesting part.
+-- Callbacks that watch for standing on and off of a block.
+-- These aren't registrars as they make more sense to call a block's own callbacks instead.
+
+-- First bind to MT...
 local PerPlayerOnChangeCallbackRegistrar =
 	make_per_player_on_change_callback_registrar(memory_registrar)
+
+
 
 local round = lib.coords.round_to_node_mut
 local equal = mtrequire("ds2.minetest.vectorextras.equality")
@@ -380,17 +386,50 @@ local extractor = function(oldmemory, player, dtime)
 	return nil
 end
 
+local get = minetest.get_node
+local nodes = minetest.registered_nodes
+local get_callback_off = function(def)
+	return def.on_stood_off
+end
+local get_callback_on = function(def)
+	return def.on_stood_on
+end
+
+local runcallback = function(player, pos, node, def, get_callback)
+	-- don't catch fire on unknown nodes.
+	if not def then return end
+
+	local callback = get_callback(def)
+	if not callback then return end
+
+	callback(player, pos, node, def)
+end
+
 local on_change = function(player, oldpos, newpos)
-	local n = player:get_player_name()
-	if oldpos then
-		say("# "..n.." left foot pos: "..fmt(oldpos))
-	end
-	say("# "..n.." entered foot pos: "..fmt(newpos))
+	local oldnode
+	-- if there wasn't a previous node then evidently step-off makes no sense...
+	if oldpos then oldnode = get(oldpos) end
+	local newnode = get(newpos)
+
+	local olddef = oldpos and nodes[oldnode.name] or nil
+	local newdef = nodes[newnode.name]
+
+	runcallback(player, oldpos, oldnode, olddef, get_callback_off)
+	runcallback(player, newpos, newnode, newdef, get_callback_on)
 end
 PerPlayerOnChangeCallbackRegistrar.register(extractor, on_change)
 
 
 
+
+-- just for fun... (aren't I evil? >:D )
+if tnt then
+	minetest.override_item("tnt:tnt", {
+		on_stood_on = function(player, pos, node, def)
+			tnt.boom(pos, {radius=2,damage_radius=2})
+		end
+	})
+end
 
 
 

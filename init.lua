@@ -233,6 +233,11 @@ local memory_registrar =
 	make_memory_per_player_callback_registrar(
 		PerPlayerCallbackRegistrar, leave_registrar)
 
+-- cheaty place for other mods to use...
+minetest.register_globalstep_perplayer_memory = memory_registrar.register
+
+
+
 -- nodes that are painful to stand on.
 local ouch_nodes = {
 	["default:cactus"] = 1,
@@ -430,6 +435,25 @@ if tnt then
 		end
 	})
 end
+
+
+
+-- DEPLOY AH TELEPORTAH HERE
+local stone = minetest.registered_nodes["default:stone"]
+minetest.register_node("player_onstep_hooks:teleporter", {
+	description = "DEPLOY AH TELEPORTAH HERE (step on me after setting meta)",
+	tiles = stone and stone.tiles or nil,
+	on_stood_on = function(player, pos, node, def)
+		local m = minetest.get_meta(pos)
+		local p = player:get_pos()
+
+		p.x = p.x + m:get_float("x")
+		p.y = p.y + m:get_float("y")
+		p.z = p.z + m:get_float("z")
+
+		player:set_pos(p)
+	end,
+})
 
 
 
